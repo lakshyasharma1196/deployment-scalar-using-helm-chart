@@ -1,0 +1,54 @@
+image:
+  repository: lakshyasharma1196/scale
+  tag: gama3
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  port: 80
+env: test
+Schedules:
+  - "0 17 * * 1-5"
+  - "0 6 * * 1-5"
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations:
+  sidecar.istio.io/inject: 'false'
+  traffic.sidecar.istio.io/excludeOutboundIPRanges: 0.0.0.0/0
+#  date/deploy-date: {{ now | quote }}
+podSecurityContext: {}
+
+securityContext: {}
+  # capabilities:ß
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: alpha.eksctl.io/nodegroup-name
+              operator: In
+              values:
+                - spot-instance-nodes
+
+

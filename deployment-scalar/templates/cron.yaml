@@ -1,0 +1,90 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ .Values.env }}
+  name: {{ include "deployment-scalar.fullname" . }}-down
+  labels:
+    {{- include "deployment-scalar.labels" . | nindent 4 }}
+spec:
+  schedule: {{ index .Values.Schedules 0 }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            {{- toYaml .Values.podAnnotations | nindent 14 }}
+          labels:
+             {{- include "deployment-scalar.labels" . | nindent 14 }}
+        spec:
+          shareProcessNamespace: true
+          serviceAccountName: {{ include "deployment-scalar.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: {{ .Chart.Name }}-down
+              image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              command: ["python", "scale.py", "scale-down", "{{ .Values.env }}"]
+          restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ .Values.env }}
+  name: {{ include "deployment-scalar.fullname" . }}-up
+  labels:
+    {{- include "deployment-scalar.labels" . | nindent 4 }}
+spec:
+  schedule: {{ index .Values.Schedules 1 }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            {{- toYaml .Values.podAnnotations | nindent 14 }}
+          labels:
+             {{- include "deployment-scalar.labels" . | nindent 14 }}
+        spec:
+          shareProcessNamespace: true
+          serviceAccountName: {{ include "deployment-scalar.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: {{ .Chart.Name }}-up
+              image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              command: ["python", "scale.py", "scale-up", "{{ .Values.env }}"]
+          restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
